@@ -3,7 +3,7 @@
   <div>
     <h1>About Page</h1>
     <textarea v-model="editedNote.title"></textarea>
-    <button @click="saveEdit">Save</button>
+    <button @click="saveEdit">{{ isNewNote ? 'Create' : 'Save' }}</button>
   </div>
 </template>
 
@@ -17,18 +17,30 @@ export default {
       editedNote: { id: null, title: '' }
     };
   },
-  mounted() {
-    const id = this.$route.params.id;
-    this.editedNote = this.getNoteById(id);
-  },
   computed: {
-    ...mapGetters(['getNoteById'])
+    ...mapGetters(['getNoteById']),
+    isNewNote() {
+      return this.$route.params.id === 'new';
+    }
   },
   methods: {
-    ...mapActions(['updateNoteTitle']),
+    ...mapActions(['updateNoteTitle', 'addNote']),
     saveEdit() {
-      this.updateNoteTitle({ id: this.editedNote.id, title: this.editedNote.title });
+      if (this.isNewNote) {
+        // Создаем новую запись
+        this.addNote({ title: this.editedNote.title });
+      } else {
+        // Обновляем существующую запись
+        this.updateNoteTitle({ id: this.editedNote.id, title: this.editedNote.title });
+      }
+      // После сохранения возвращаемся на домашнюю страницу
       this.$router.push({ name: 'HomePage' });
+    }
+  },
+  mounted() {
+    const id = this.$route.params.id;
+    if (id !== 'new') {
+      this.editedNote = this.getNoteById(id);
     }
   }
 }
